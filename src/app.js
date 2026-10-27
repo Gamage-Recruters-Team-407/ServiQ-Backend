@@ -20,4 +20,6 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api/categories", require("./routes/categoryRoutes"));
+
 module.exports = app;
