@@ -21,5 +21,5 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/categories", require("./routes/categoryRoutes"));
-
+app.use("/api/services", require("./routes/serviceRoutes"));
 module.exports = app;

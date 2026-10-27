@@ -1,23 +1,24 @@
 const categoryService = require("../services/categoryService");
 const { CATEGORY_STATUSES } = require("../constants/enums");
+const { sendError } = require("../utils/handleError");
 
-function sendError(res, err) {
-  if (err.statusCode) {
-    return res.status(err.statusCode).json({ success: false, message: err.message, details: err.details });
-  }
-  if (err.code === 11000) {
-    return res.status(409).json({ success: false, message: "A category with this name already exists" });
-  }
-  if (err.name === "ValidationError") {
-    const details = Object.fromEntries(Object.entries(err.errors).map(([k, v]) => [k, v.message]));
-    return res.status(400).json({ success: false, message: "Validation failed", details });
-  }
-  if (err.name === "CastError") {
-    return res.status(400).json({ success: false, message: "Invalid id" });
-  }
-  console.error("[categories]", err);
-  return res.status(500).json({ success: false, message: "Something went wrong" });
-}
+// function sendError(res, err) {
+//   if (err.statusCode) {
+//     return res.status(err.statusCode).json({ success: false, message: err.message, details: err.details });
+//   }
+//   if (err.code === 11000) {
+//     return res.status(409).json({ success: false, message: "A category with this name already exists" });
+//   }
+//   if (err.name === "ValidationError") {
+//     const details = Object.fromEntries(Object.entries(err.errors).map(([k, v]) => [k, v.message]));
+//     return res.status(400).json({ success: false, message: "Validation failed", details });
+//   }
+//   if (err.name === "CastError") {
+//     return res.status(400).json({ success: false, message: "Invalid id" });
+//   }
+//   console.error("[categories]", err);
+//   return res.status(500).json({ success: false, message: "Something went wrong" });
+// }
 
 // GET /api/categories?parent=root|<id>&q=&withCounts=1   (public: Active only)
 exports.getPublicCategories = async (req, res) => {
