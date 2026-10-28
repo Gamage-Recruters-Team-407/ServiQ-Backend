@@ -80,11 +80,25 @@ const auditLogSchema = new mongoose.Schema(
     }
   },
   {
-    timestamps: { createdAt: "created_at", updatedAt: "updated_at" }
+    timestamps: { createdAt: "created_at", updatedAt: false }
   }
 );
 
 auditLogSchema.index({ actor_id: 1, logged_at: -1 });
 auditLogSchema.index({ resource_type: 1, resource_id: 1 });
+
+const immutableOperation = function () {
+  throw new Error("Audit records are append-only and cannot be changed or deleted.");
+};
+
+auditLogSchema.pre(
+  ["updateOne", "updateMany", "findOneAndUpdate", "replaceOne", "deleteOne", "deleteMany", "findOneAndDelete"],
+  immutableOperation
+);
+auditLogSchema.pre("save", function () {
+  if (!this.isNew) {
+    throw new Error("Audit records are append-only and cannot be changed or deleted.");
+  }
+});
 
 module.exports = mongoose.model("AuditLog", auditLogSchema);
