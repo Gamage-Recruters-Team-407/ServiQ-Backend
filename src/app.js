@@ -4,6 +4,8 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 
+const adminRoutes = require("./routes/admin.routes");
+
 const app = express();
 
 app.use(helmet());
@@ -19,5 +21,8 @@ app.get("/api/health", (req, res) => {
     message: "serviQ backend is running"
   });
 });
+
+// ── Admin routes (Dev 21 – Marketplace Administration) ──
+app.use("/api/admin", adminRoutes);
 
 module.exports = app;
