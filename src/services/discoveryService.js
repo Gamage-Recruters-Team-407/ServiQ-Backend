@@ -127,6 +127,24 @@ class DiscoveryService {
     if (sortBy === "newest") sortObj = { created_at: -1 };
 
     const total = await Service.countDocuments(query);
+    if (total === 0) {
+      const anyCount = await Service.countDocuments({});
+      if (anyCount === 0) {
+        return this._searchServicesMock({
+          q,
+          category,
+          loc,
+          minPrice,
+          maxPrice,
+          pricingType,
+          minRating,
+          sortBy,
+          page,
+          limit
+        });
+      }
+    }
+
     const skip = (page - 1) * limit;
 
     let services = await Service.find(query)
@@ -308,6 +326,12 @@ class DiscoveryService {
       if (sortBy === "newest") sortObj = { created_at: -1 };
 
       const total = await Provider.countDocuments(query);
+      if (total === 0) {
+        const anyCount = await Provider.countDocuments({});
+        if (anyCount === 0) {
+          return this._getProvidersMock(params);
+        }
+      }
       const skip = (page - 1) * limit;
 
       const providers = await Provider.find(query)
@@ -333,7 +357,20 @@ class DiscoveryService {
       };
     }
 
-    // Fallback Mock
+    return this._getProvidersMock(params);
+  }
+
+  _getProvidersMock(params) {
+    const {
+      q,
+      city,
+      minRating,
+      verifiedOnly,
+      sortBy = "rating_desc",
+      page = 1,
+      limit = 12
+    } = params;
+
     let results = [...mockProviders];
 
     if (q) {
@@ -397,6 +434,11 @@ class DiscoveryService {
     const { limit = 6, category } = params;
 
     if (this.isDbConnected()) {
+      const anyCount = await Service.countDocuments({});
+      if (anyCount === 0) {
+        return this._getFeaturedMock(params);
+      }
+
       const serviceQuery = { status: "Active" };
       if (category && mongoose.Types.ObjectId.isValid(category)) {
         serviceQuery.category_id = new mongoose.Types.ObjectId(category);
@@ -424,7 +466,11 @@ class DiscoveryService {
       };
     }
 
-    // Mock fallback
+    return this._getFeaturedMock(params);
+  }
+
+  _getFeaturedMock(params) {
+    const { limit = 6, category } = params;
     let services = [...mockServices];
     if (category) {
       services = services.filter((s) => s.category?.slug === category || s.category_id === category);
