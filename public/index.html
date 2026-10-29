@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServiQ - Developer 06 Service Discovery Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* Team 407 Official Design Guidelines Palette */
+    :root {
+      --primary: #F97316;
+      --primary-hover: #EA580C;
+      --secondary-accent: #FDBA74;
+      --bg-main: #FFFFFF;
+      --bg-secondary: #FFF7ED;
+      --cards-bg: #FFFFFF;
+      --text-main: #0F172A;
+      --text-secondary: #64748B;
+      --borders: #E2E8F0;
+      --active-nav: #F97316;
+      --success: #15803D;
+      --warning: #B45309;
+      --error: #DC2626;
+      --info: #FFEDD5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-secondary);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      background: var(--cards-bg);
+      border: 1px solid var(--borders);
+      border-radius: 16px;
+      padding: 1.25rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1.5rem;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+      margin-bottom: 2rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+    }
+
+    .logo {
+      width: 46px;
+      height: 46px;
+      background: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    }
+
+    .brand-title h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title p {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1.2rem;
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(21, 128, 61, 0.6);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.2); }
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+      background: var(--cards-bg);
+      padding: 0.5rem;
+      border: 1px solid var(--borders);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 0.92rem;
+      font-weight: 600;
+      padding: 0.65rem 1.4rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: var(--bg-secondary);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--primary);
+      box-shadow: 0 2px 10px rgba(249, 115, 22, 0.25);
+    }
+
+    /* Main Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 960px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--cards-bg);
+      border: 1px solid var(--borders);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 0.45rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-input, .form-select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #FFFFFF;
+      border: 1px solid var(--borders);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.92rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .form-input:focus, .form-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--primary);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: background-color 0.2s, transform 0.15s;
+      margin-top: 1.5rem;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+    }
+
+    .btn-submit:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-submit:active {
+      transform: translateY(1px);
+    }
+
+    /* Response View */
+    .response-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--borders);
+    }
+
+    .endpoint-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.35rem 0.8rem;
+      background: var(--info);
+      border: 1px solid #FED7AA;
+      border-radius: 6px;
+      color: var(--warning);
+    }
+
+    .results-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .service-card {
+      background: #FFFFFF;
+      border: 1px solid var(--borders);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+
+    .service-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--secondary-accent);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    }
+
+    .service-img {
+      width: 100%;
+      height: 145px;
+      object-fit: cover;
+      background-color: #F1F5F9;
+    }
+
+    .service-content {
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+
+    .service-category {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 0.35rem;
+    }
+
+    .service-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      line-height: 1.35;
+      margin-bottom: 0.45rem;
+      color: var(--text-main);
+    }
+
+    .service-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin-bottom: 0.85rem;
+    }
+
+    .service-footer {
+      margin-top: auto;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--borders);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .service-price {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .service-location {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* JSON Box */
+    .json-box {
+      background: #0F172A;
+      border: 1px solid var(--borders);
+      border-radius: 10px;
+      padding: 1.1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: #E2E8F0;
+      max-height: 280px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .quick-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--borders);
+    }
+
+    .quick-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--bg-secondary);
+      border: 1px solid #FFEDD5;
+      padding: 0.45rem 0.85rem;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .quick-link:hover {
+      background: #FED7AA;
+      border-color: var(--primary);
+    }
+
+    .badge-verified {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      color: var(--success);
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="logo">Q</div>
+        <div class="brand-title">
+          <h1>ServiQ Service Discovery Portal</h1>
+          <p>Team 407 &nbsp;|&nbsp; Developer 06 (Service Search & Discovery) &nbsp;|&nbsp; Port: 5000</p>
+        </div>
+      </div>
+      <div class="status-badge">
+        <span class="status-dot"></span>
+        <span>Node.js Backend Online</span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-search" onclick="switchTab('search')">
+        🔍 Service Search (/api/discovery/search)
+      </button>
+      <button class="tab-btn" id="tab-providers" onclick="switchTab('providers')">
+        👷 Providers Discovery (/api/discovery/providers)
+      </button>
+      <button class="tab-btn" id="tab-featured" onclick="switchTab('featured')">
+        ⭐ Featured Homepage Showcase (/api/discovery/featured)
+      </button>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="grid">
+      <!-- Left Panel: Filters / Query Builder -->
+      <div class="card" id="filter-panel">
+        <h2>⚡ Query & Filters</h2>
+
+        <div id="search-controls">
+          <div class="form-group">
+            <label>Search Keyword (q)</label>
+            <input type="text" id="input-q" class="form-input" placeholder="e.g. cleaning, electrical, plumbing...">
+          </div>
+
+          <div class="form-group">
+            <label>Category</label>
+            <select id="input-category" class="form-select">
+              <option value="">All Categories</option>
+              <option value="cleaning">Home Cleaning</option>
+              <option value="electrical">Electrical Repairs</option>
+              <option value="plumbing">Plumbing Services</option>
+              <option value="ac-repair">AC Repair & Servicing</option>
+              <option value="carpentry">Carpentry & Furniture</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>City / Location</label>
+            <input type="text" id="input-city" class="form-input" placeholder="e.g. Colombo, Kandy, Galle...">
+          </div>
+
+          <div class="row-2">
+            <div class="form-group">
+              <label>Min Price (LKR)</label>
+              <input type="number" id="input-minPrice" class="form-input" placeholder="0">
+            </div>
+            <div class="form-group">
+              <label>Max Price (LKR)</label>
+              <input type="number" id="input-maxPrice" class="form-input" placeholder="10000">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Sort By</label>
+            <select id="input-sort" class="form-select">
+              <option value="relevance">Relevance</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="rating_desc">Highest Rated</option>
+              <option value="newest">Newest First</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-submit" onclick="executeCurrentQuery()">
+          🚀 Search Services
+        </button>
+
+        <div class="quick-links">
+          <a class="quick-link" href="/api/health" target="_blank">🔗 /api/health</a>
+          <a class="quick-link" href="/api/discovery/search" target="_blank">🔗 Raw Search</a>
+          <a class="quick-link" href="/api/discovery/providers" target="_blank">🔗 Raw Providers</a>
+          <a class="quick-link" href="/api/discovery/featured" target="_blank">🔗 Raw Featured</a>
+        </div>
+      </div>
+
+      <!-- Right Panel: Live Response & Visual Cards -->
+      <div class="card">
+        <div class="response-header">
+          <h2>📊 Search Results & Response</h2>
+          <span class="endpoint-tag" id="current-endpoint-display">GET /api/discovery/search</span>
+        </div>
+
+        <div id="results-cards" class="results-container">
+          <!-- Filled by JavaScript -->
+        </div>
+
+        <details>
+          <summary style="cursor: pointer; font-size: 0.88rem; color: var(--primary); margin-bottom: 0.6rem; font-weight: 700;">
+            View Raw JSON Payload
+          </summary>
+          <div class="json-box" id="json-output">
+            Loading...
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeTab = 'search';
+
+    function switchTab(tab) {
+      activeTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+
+      const searchControls = document.getElementById('search-controls');
+      const submitBtn = document.querySelector('.btn-submit');
+      if (tab === 'search') {
+        searchControls.style.display = 'block';
+        submitBtn.innerHTML = '🚀 Search Services';
+      } else if (tab === 'providers') {
+        searchControls.style.display = 'none';
+        submitBtn.innerHTML = '🔄 Refresh Providers';
+      } else {
+        searchControls.style.display = 'none';
+        submitBtn.innerHTML = '🔄 Refresh Featured';
+      }
+
+      executeCurrentQuery();
+    }
+
+    async function executeCurrentQuery() {
+      const endpointDisplay = document.getElementById('current-endpoint-display');
+      const resultsContainer = document.getElementById('results-cards');
+      const jsonOutput = document.getElementById('json-output');
+
+      resultsContainer.innerHTML = '<p style="color: #64748B;">Fetching live data from backend...</p>';
+
+      let url = '/api/discovery/search';
+
+      if (activeTab === 'search') {
+        const q = document.getElementById('input-q').value.trim();
+        const category = document.getElementById('input-category').value;
+        const city = document.getElementById('input-city').value.trim();
+        const minPrice = document.getElementById('input-minPrice').value;
+        const maxPrice = document.getElementById('input-maxPrice').value;
+        const sortBy = document.getElementById('input-sort').value;
+
+        const params = new URLSearchParams();
+        if (q) params.append('q', q);
+        if (category) params.append('category', category);
+        if (city) params.append('city', city);
+        if (minPrice) params.append('minPrice', minPrice);
+        if (maxPrice) params.append('maxPrice', maxPrice);
+        if (sortBy) params.append('sortBy', sortBy);
+
+        url = `/api/discovery/search?${params.toString()}`;
+      } else if (activeTab === 'providers') {
+        url = '/api/discovery/providers';
+      } else if (activeTab === 'featured') {
+        url = '/api/discovery/featured';
+      }
+
+      endpointDisplay.innerText = `GET ${url}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        jsonOutput.innerText = JSON.stringify(data, null, 2);
+
+        renderResults(data);
+      } catch (err) {
+        resultsContainer.innerHTML = `<p style="color: #DC2626;">Error fetching data: ${err.message}</p>`;
+        jsonOutput.innerText = String(err);
+      }
+    }
+
+    function renderResults(data) {
+      const resultsContainer = document.getElementById('results-cards');
+      resultsContainer.innerHTML = '';
+
+      if (activeTab === 'search') {
+        const services = data.data || [];
+        if (services.length === 0) {
+          resultsContainer.innerHTML = '<p style="color: #64748B; grid-column: 1/-1;">No services found matching your filters.</p>';
+          return;
+        }
+
+        services.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'service-card';
+          card.innerHTML = `
+            <img class="service-img" src="${item.images?.[0] || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80'}" alt="${item.name}" />
+            <div class="service-content">
+              <span class="service-category">${item.category?.name || 'General Service'}</span>
+              <h3 class="service-title">${item.name}</h3>
+              <p class="service-desc">${item.description}</p>
+              <div class="service-footer">
+                <span class="service-price">LKR ${item.price?.amount?.toLocaleString()} <span style="font-size:0.75rem; color:#64748B; font-weight:500;">(${item.price?.pricing_type})</span></span>
+                <span class="service-location">📍 ${item.coverage?.supported_locations?.[0] || 'Colombo'}</span>
+              </div>
+            </div>
+          `;
+          resultsContainer.appendChild(card);
+        });
+      } else if (activeTab === 'providers') {
+        const providers = data.data || [];
+        providers.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'service-card';
+          card.innerHTML = `
+            <div class="service-content" style="padding-top: 1.5rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                <span class="service-category">⭐ ${p.rating_average} (${p.rating_count})</span>
+                <span class="badge-verified">✓ ${p.verification_status}</span>
+              </div>
+              <h3 class="service-title">${p.business_information?.business_name || 'Service Provider'}</h3>
+              <p class="service-desc">${p.business_information?.description || ''}</p>
+              <div class="service-footer">
+                <span style="font-size: 0.85rem; color:#0F172A; font-weight:600;">${p.experience?.years_of_experience || 0} Years Exp.</span>
+                <span class="service-location">📍 ${p.coverage_area?.cities?.slice(0, 2).join(', ')}</span>
+              </div>
+            </div>
+          `;
+          resultsContainer.appendChild(card);
+        });
+      } else if (activeTab === 'featured') {
+        const featServices = data.data?.featuredServices || [];
+        featServices.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'service-card';
+          card.innerHTML = `
+            <img class="service-img" src="${item.images?.[0] || 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=400&q=80'}" alt="${item.name}" />
+            <div class="service-content">
+              <span class="service-category">${item.category?.name || 'Featured'}</span>
+              <h3 class="service-title">${item.name}</h3>
+              <div class="service-footer">
+                <span class="service-price">LKR ${item.price?.amount?.toLocaleString()}</span>
+                <span class="service-location">⭐ ${item.provider?.rating_average || 5.0}</span>
+              </div>
+            </div>
+          `;
+          resultsContainer.appendChild(card);
+        });
+      }
+    }
+
+    // Initial load
+    executeCurrentQuery();
+  </script>
+</body>
+</html>

@@ -9,16 +9,16 @@ const {
 } = require("../validations/providerServicesValidation");
 
 function errorResponse(res, error) {
-  const status = error.statusCode ||
-    (
-      error.name === "ValidationError" ||
-      error.name === "CastError"
-        ? 400
-        : 500
-    );
+  const status = error.statusCode || (
+    [
+      "ValidationError",
+      "CastError",
+      "StrictModeError"
+    ].includes(error.name) ? 400 : 500
+  );
 
   if (status === 500) {
-    console.error("Provider Services:", error);
+    console.error("[Dev05 Provider Services]", error);
   }
 
   return res.status(status).json({
@@ -29,107 +29,141 @@ function errorResponse(res, error) {
   });
 }
 
-function bodyOr400(res, schema, body) {
+function validatedBody(res, schema, body) {
   const result = schema.safeParse(body);
 
-  if (!result.success) {
-    res.status(400).json({
-      success: false,
-      message: "Validation failed",
-      errors: result.error.issues.map((issue) => ({
-        field: issue.path.join("."),
-        message: issue.message
-      }))
-    });
-
-    return null;
+  if (result.success) {
+    return result.data;
   }
 
-  return result.data;
+  res.status(400).json({
+    success: false,
+    message: "Validation failed",
+    errors: result.error.issues.map((issue) => ({
+      field: issue.path.join("."),
+      message: issue.message
+    }))
+  });
+
+  return null;
 }
 
-function validServiceId(req, res) {
-  if (!mongoose.isObjectIdOrHexString(req.params.id)) {
-    res.status(400).json({
-      success: false,
-      message: "Invalid service ID"
-    });
-
-    return false;
+function validId(req, res) {
+  if (mongoose.isObjectIdOrHexString(req.params.id)) {
+    return true;
   }
 
-  return true;
+  res.status(400).json({
+    success: false,
+    message: "Invalid service ID"
+  });
+
+  return false;
 }
 
+// GET ALL SERVICES
 async function list(req, res) {
   try {
-    const services = await providerServices.list(req.user);
+    const data = await providerServices.list(req.user);
 
     return res.status(200).json({
       success: true,
-      count: services.length,
-      data: services
+      count: data.length,
+      data
     });
   } catch (error) {
     return errorResponse(res, error);
   }
 }
 
+// GET SINGLE SERVICE
+async function getById(req, res) {
+  if (!validId(req, res)) return;
+
+  try {
+    const data = await providerServices.getById(
+      req.user,
+      req.params.id
+    );
+
+    return res.status(200).json({
+      success: true,
+      data
+    });
+  } catch (error) {
+    return errorResponse(res, error);
+  }
+}
+
+// CREATE SERVICE
 async function create(req, res) {
-  const data = bodyOr400(res, createServiceSchema, req.body);
+  const data = validatedBody(
+    res,
+    createServiceSchema,
+    req.body
+  );
 
   if (!data) return;
 
   try {
-    const service = await providerServices.create(req.user, data);
+    const created = await providerServices.create(
+      req.user,
+      data
+    );
 
     return res.status(201).json({
       success: true,
       message: "Service created",
-      data: service
+      data: created
     });
   } catch (error) {
     return errorResponse(res, error);
   }
 }
 
+// UPDATE SERVICE
 async function update(req, res) {
-  if (!validServiceId(req, res)) return;
+  if (!validId(req, res)) return;
 
-  const changes = bodyOr400(
+  const data = validatedBody(
     res,
     updateServiceSchema,
     req.body
   );
 
-  if (!changes) return;
+  if (!data) return;
 
   try {
-    const service = await providerServices.update(
+    const updated = await providerServices.update(
       req.user,
       req.params.id,
-      changes
+      data
     );
 
     return res.status(200).json({
       success: true,
       message: "Service updated",
-      data: service
+      data: updated
     });
   } catch (error) {
     return errorResponse(res, error);
   }
 }
 
+// CHANGE STATUS
 async function changeStatus(req, res) {
-  if (!validServiceId(req, res)) return;
+  if (!validId(req, res)) return;
 
-  const data = bodyOr400(res, statusSchema, req.body);
+  const data = validatedBody(
+    res,
+    statusSchema,
+    req.body
+  );
 
   if (!data) return;
 
   try {
-    const service = await providerServices.changeStatus(
+    const updated = await providerServices.changeStatus(
       req.user,
       req.params.id,
       data.status
@@ -137,8 +171,51 @@ async function changeStatus(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Service status updated",
-      data: service
+      message: "Status updated",
+      data: updated
+    });
+  } catch (error) {
+    return errorResponse(res, error);
+  }
+}
+
+// RESTORE ARCHIVED SERVICE
+async function restore(req, res) {
+  if (!validId(req, res)) return;
+
+  try {
+    const data = await providerServices.restore(
+      req.user,
+      req.params.id
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Service restored as Inactive",
+      data
+    });
+  } catch (error) {
+    return errorResponse(res, error);
+  }
+}
+
+// PERMANENT DELETE
+async function remove(req, res) {
+  if (!validId(req, res)) return;
+
+  try {
+    const deleted = await providerServices.remove(
+      req.user,
+      req.params.id
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Service permanently deleted",
+      data: {
+        _id: deleted._id,
+        name: deleted.name
+      }
     });
   } catch (error) {
     return errorResponse(res, error);
@@ -147,7 +224,10 @@ async function changeStatus(req, res) {
 
 module.exports = {
   list,
+  getById,
   create,
   update,
-  changeStatus
+  changeStatus,
+  restore,
+  remove
 };
