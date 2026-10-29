@@ -1,6 +1,6 @@
 const express = require("express");
-const upload = require("../middleware/upload");
-const authorizeConversation = require("../middleware/authorizeConversation");
+const upload = require("../middlewares/upload");
+const authorizeConversation = require("../middlewares/authorizeConversation");
 const { uploadAttachment } = require("../controllers/uploadController");
 
 // Replace this with your team's existing auth middleware.
