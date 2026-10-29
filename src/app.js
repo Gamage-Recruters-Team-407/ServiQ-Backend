@@ -31,5 +31,8 @@ app.use("/api/services", require("./routes/serviceRoutes"));
 app.use("/api/auth", authRoutes);
 app.use("/api/providers/me/services", providerServicesRoutes);
 
+// Provider Profiles routes (Developer 04)
+app.use("/api/providers", require("./routes/providerRoutes"));
+
 module.exports = app;
 
