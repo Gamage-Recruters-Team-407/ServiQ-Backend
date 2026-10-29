@@ -50,4 +50,7 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
+// Provider Profiles routes (Developer 04)
+app.use("/api/providers", require("./routes/providerRoutes"));
+
 module.exports = app;
