@@ -1,12 +1,11 @@
-
 {
   "name": "serviq-backend",
   "version": "1.0.0",
   "description": "AI-Powered Local Services Marketplace",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "start": "node init && node src/server.js",
+    "dev": "node init && nodemon src/server.js",
     "test": "node --test",
     "seed:catalogue": "node src/seeds/catalogue.seed.js"
   },
