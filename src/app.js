@@ -8,6 +8,7 @@ const adminRoutes = require("./routes/admin.routes");
 const authRoutes = require("./routes/authRoutes");
 const providerServicesRoutes = require("./routes/providerServicesRoutes");
 const discoveryRoutes = require("./routes/discoveryRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 const auditLogging = require("./middlewares/auditLogging");
 
 const app = express();
@@ -41,6 +42,9 @@ app.use("/api/services", require("./routes/serviceRoutes"));
 app.use("/api/auth", authRoutes);
 app.use("/api/providers/me/services", providerServicesRoutes);
 app.use("/api/admin/audit-logs", require("./routes/auditLogRoutes"));
+
+// Ratings & Reviews Routes 
+app.use("/api/reviews", reviewRoutes);
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
