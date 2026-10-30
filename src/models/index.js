@@ -11,6 +11,7 @@ const Payment = require("./Payment");
 const CommissionRule = require("./CommissionRule");
 const Commission = require("./Commission");
 const Earnings = require("./Earnings");
+const EarningsHistory = require("./EarningsHistory");
 const Payout = require("./Payout");
 const ServiceCompletion = require("./ServiceCompletion");
 const Review = require("./Review");
@@ -33,6 +34,7 @@ module.exports = {
   CommissionRule,
   Commission,
   Earnings,
+  EarningsHistory,
   Payout,
   ServiceCompletion,
   Review,
