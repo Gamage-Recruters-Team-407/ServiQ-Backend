@@ -1,6 +1,5 @@
 const reviewService = require("../services/reviewService");
 const { createReviewSchema, updateReviewSchema, moderateReviewSchema } = require("../validations/reviewValidation");
-const { USER_ROLES } = require("../constants/enums");
 
 class ReviewController {
   async createReview(req, res) {
@@ -14,7 +13,7 @@ class ReviewController {
         });
       }
 
-      const newReview = await reviewService.createReview(parseResult.data, req.user._id);
+      const newReview = await reviewService.createReview(parseResult.data);
 
       return res.status(201).json({
         success: true,
@@ -33,8 +32,7 @@ class ReviewController {
   async getReviewById(req, res) {
     try {
       const { id } = req.params;
-      // Pass userId and userRole for visibility check
-      const review = await reviewService.getReviewById(id, req.user._id, req.user.user_role);
+      const review = await reviewService.getReviewById(id);
       return res.status(200).json({ success: true, data: review });
     } catch (error) {
       return res.status(error.statusCode || 500).json({ success: false, message: error.message });
@@ -53,7 +51,7 @@ class ReviewController {
       }
 
       const { id } = req.params;
-      const updatedReview = await reviewService.updateReview(id, parseResult.data, req.user._id);
+      const updatedReview = await reviewService.updateReview(id, parseResult.data);
 
       return res.status(200).json({
         success: true,
@@ -72,7 +70,7 @@ class ReviewController {
   async deleteReview(req, res) {
     try {
       const { id } = req.params;
-      await reviewService.deleteReview(id, req.user._id);
+      await reviewService.deleteReview(id);
 
       return res.status(200).json({
         success: true,
@@ -105,14 +103,11 @@ class ReviewController {
 
   async getMyReviews(req, res) {
     try {
-      const Customer = require("../models/Customer");
-      const customerProfile = await Customer.findOne({ user_id: req.user._id });
-      
-      if (!customerProfile) {
-        return res.status(404).json({ success: false, message: "Customer profile not found" });
+      const { customer_id } = req.query; // Get from query instead of req.user
+      if (!customer_id) {
+        return res.status(400).json({ success: false, message: "customer_id is required in query" });
       }
-
-      const reviews = await reviewService.getReviewsByCustomer(customerProfile._id);
+      const reviews = await reviewService.getReviewsByCustomer(customer_id);
       return res.status(200).json({ success: true, data: reviews });
     } catch (error) {
       return res.status(500).json({ success: false, message: error.message });
@@ -134,17 +129,13 @@ class ReviewController {
 
   async moderateReview(req, res) {
     try {
-      if (req.user.user_role !== USER_ROLES.ADMIN) {
-        return res.status(403).json({ success: false, message: "Forbidden: Admin access required" });
-      }
-
       const parseResult = moderateReviewSchema.safeParse(req.body);
       if (!parseResult.success) {
         return res.status(400).json({ success: false, message: parseResult.error.issues[0].message });
       }
 
       const { id } = req.params;
-      const updatedReview = await reviewService.moderateReview(id, parseResult.data, req.user._id);
+      const updatedReview = await reviewService.moderateReview(id, parseResult.data);
 
       return res.status(200).json({
         success: true,
@@ -159,9 +150,6 @@ class ReviewController {
 
   async getAllReviewsForAdmin(req, res) {
     try {
-      if (req.user.user_role !== USER_ROLES.ADMIN) {
-        return res.status(403).json({ success: false, message: "Forbidden: Admin access required" });
-      }
       const reviews = await reviewService.getAllReviewsForAdmin(req.query);
       return res.status(200).json({ success: true, data: reviews });
     } catch (error) {
