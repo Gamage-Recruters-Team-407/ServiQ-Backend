@@ -1,28 +1,27 @@
 const Review = require("../models/Review");
 const ServiceCompletion = require("../models/ServiceCompletion");
-const Customer = require("../models/Customer");
 const mongoose = require("mongoose");
-const { REVIEW_STATUSES, REVIEW_MODERATION_STATUSES, USER_ROLES } = require("../constants/enums");
+const { REVIEW_STATUSES, REVIEW_MODERATION_STATUSES } = require("../constants/enums");
 
 class ReviewService {
   /**
-   * Create a new review (Customer)
+   * Create a new review (No Backend Auth Check - Uses body data directly)
    */
-  async createReview(data, userId) {
-    const customerProfile = await Customer.findOne({ user_id: userId });
-    if (!customerProfile || customerProfile._id.toString() !== data.customer_id) {
-      const error = new Error("Unauthorized: You can only review your own bookings.");
-      error.statusCode = 403;
+  async createReview(data) {
+    // 1. Check if Service is Completed and Eligible for Review
+    const completion = await ServiceCompletion.findOne({ booking_id: data.booking_id });
+    if (!completion) {
+      const error = new Error("Service completion record not found.");
+      error.statusCode = 404;
       throw error;
     }
-
-    const completion = await ServiceCompletion.findOne({ booking_id: data.booking_id });
-    if (!completion || completion.current_status !== "Completed" || !completion.review_eligibility) {
+    if (completion.current_status !== "Completed" || !completion.review_eligibility) {
       const error = new Error("Review not allowed: Service is not completed or not eligible yet.");
       error.statusCode = 400;
       throw error;
     }
 
+    // 2. Check if a review already exists for this booking
     const existingReview = await Review.findOne({ booking_id: data.booking_id });
     if (existingReview) {
       const error = new Error("A review for this booking already exists.");
@@ -30,6 +29,7 @@ class ReviewService {
       throw error;
     }
 
+    // 3. Create the Review using data from the request body directly
     const newReview = await Review.create({
       ...data,
       review_status: REVIEW_STATUSES.SUBMITTED,
@@ -40,9 +40,51 @@ class ReviewService {
   }
 
   /**
-   * Get a single review by ID (With visibility check)
+   * Update an existing review (No Auth Check)
    */
-  async getReviewById(reviewId, userId, userRole) {
+  async updateReview(reviewId, updateData) {
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      const error = new Error("Review not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (review.review_status === REVIEW_STATUSES.REMOVED) {
+      const error = new Error("Cannot update a review that has been removed.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (updateData.rating_value !== undefined) review.rating_value = updateData.rating_value;
+    if (updateData.review_text !== undefined) review.review_text = updateData.review_text;
+    
+    review.moderation_status = REVIEW_MODERATION_STATUSES.PENDING;
+    review.review_status = REVIEW_STATUSES.SUBMITTED;
+
+    await review.save();
+    return review;
+  }
+
+  /**
+   * Delete a review (No Auth Check)
+   */
+  async deleteReview(reviewId) {
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      const error = new Error("Review not found.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await Review.findByIdAndDelete(reviewId);
+    return { message: "Review deleted successfully." };
+  }
+
+  /**
+   * Get a single review by ID
+   */
+  async getReviewById(reviewId) {
     const review = await Review.findById(reviewId)
       .populate("customer_id", "first_name last_name profile_image")
       .populate("provider_id", "business_information")
@@ -53,83 +95,11 @@ class ReviewService {
       error.statusCode = 404;
       throw error;
     }
-
-    // Visibility Check: If not PUBLISHED, only the owner or Admin can view it
-    const isOwner = review.customer_id._id.toString() === userId;
-    const isAdmin = userRole === USER_ROLES.ADMIN;
-
-    if (review.review_status !== REVIEW_STATUSES.PUBLISHED && !isOwner && !isAdmin) {
-      const error = new Error("This review is not publicly available.");
-      error.statusCode = 403;
-      throw error;
-    }
-
     return review;
   }
 
   /**
-   * Update an existing review (Customer can only update their own)
-   */
-  async updateReview(reviewId, updateData, userId) {
-    const review = await Review.findById(reviewId);
-    if (!review) {
-      const error = new Error("Review not found.");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // Ownership Check
-    const customerProfile = await Customer.findOne({ user_id: userId });
-    if (!customerProfile || review.customer_id.toString() !== customerProfile._id.toString()) {
-      const error = new Error("Unauthorized: You can only update your own reviews.");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Prevent updating if already removed by admin
-    if (review.review_status === REVIEW_STATUSES.REMOVED) {
-      const error = new Error("Cannot update a review that has been removed.");
-      error.statusCode = 400;
-      throw error;
-    }
-
-    // Update fields
-    if (updateData.rating_value !== undefined) review.rating_value = updateData.rating_value;
-    if (updateData.review_text !== undefined) review.review_text = updateData.review_text;
-    
-    // Reset moderation to pending if content changes (Optional, based on business rule)
-    review.moderation_status = REVIEW_MODERATION_STATUSES.PENDING;
-    review.review_status = REVIEW_STATUSES.SUBMITTED;
-
-    await review.save();
-    return review;
-  }
-
-  /**
-   * Delete a review (Customer can only delete their own)
-   */
-  async deleteReview(reviewId, userId) {
-    const review = await Review.findById(reviewId);
-    if (!review) {
-      const error = new Error("Review not found.");
-      error.statusCode = 404;
-      throw error;
-    }
-
-    // Ownership Check
-    const customerProfile = await Customer.findOne({ user_id: userId });
-    if (!customerProfile || review.customer_id.toString() !== customerProfile._id.toString()) {
-      const error = new Error("Unauthorized: You can only delete your own reviews.");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    await Review.findByIdAndDelete(reviewId);
-    return { message: "Review deleted successfully." };
-  }
-
-  /**
-   * Get reviews by Provider ID (For Provider Profile & Discovery)
+   * Get reviews by Provider ID
    */
   async getReviewsByProvider(providerId, limit = 10, offset = 0) {
     return await Review.find({ 
@@ -144,7 +114,7 @@ class ReviewService {
   }
 
   /**
-   * Get reviews by Customer ID (For Customer Dashboard)
+   * Get reviews by Customer ID
    */
   async getReviewsByCustomer(customerId) {
     return await Review.find({ customer_id: customerId })
@@ -184,9 +154,9 @@ class ReviewService {
   }
 
   /**
-   * Admin Moderation
+   * Admin Moderation (Still keeps basic admin check if needed, or can be removed)
    */
-  async moderateReview(reviewId, moderationData, adminUserId) {
+  async moderateReview(reviewId, moderationData) {
     const review = await Review.findById(reviewId);
     if (!review) {
       const error = new Error("Review not found.");
@@ -197,7 +167,6 @@ class ReviewService {
     review.review_status = moderationData.review_status || review.review_status;
     review.moderation_status = moderationData.moderation_status || review.moderation_status;
     review.moderation_reason = moderationData.moderation_reason || null;
-    review.moderated_by = adminUserId;
     review.moderated_at = new Date();
 
     await review.save();
@@ -215,7 +184,6 @@ class ReviewService {
     return await Review.find(query)
       .populate("customer_id", "first_name last_name email")
       .populate("provider_id", "business_information")
-      .populate("moderated_by", "first_name last_name")
       .sort({ submitted_at: -1 });
   }
 }
