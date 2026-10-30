@@ -19,6 +19,9 @@ const discoveryRoutes = require("./routes/discoveryRoutes");
 // Audit Logging Middleware
 const auditLogging = require("./middlewares/auditLogging");
 
+// Ratings & Reviews Routes
+const reviewRoutes = require("./routes/reviewRoutes");
+
 const app = express();
 
 // Global Middleware
@@ -64,6 +67,9 @@ app.use("/api/admin/audit-logs", require("./routes/auditLogRoutes"));
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
+
+// Ratings & Reviews Routes 
+app.use("/api/reviews", reviewRoutes);
 
 // Root Route (Interactive API Portal)
 app.get("/", (req, res) => {
