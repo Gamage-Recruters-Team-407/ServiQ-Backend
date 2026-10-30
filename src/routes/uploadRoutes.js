@@ -1,10 +1,9 @@
+
 const express = require("express");
 const upload = require("../middlewares/upload");
 const authorizeConversation = require("../middlewares/authorizeConversation");
 const { uploadAttachment } = require("../controllers/uploadController");
-
-// Replace this with your team's existing auth middleware.
-const authenticate = require("../middleware/authenticate");
+const { authenticate } = require("../middlewares/auth");
 
 const router = express.Router();
 

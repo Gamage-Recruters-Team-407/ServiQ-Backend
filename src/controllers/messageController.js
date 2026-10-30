@@ -34,7 +34,7 @@ async function sendMessage(req, res, next) {
     // Do not trust an arbitrary publicId or URL from the client.
 
     const conversation = req.conversation;
-    const senderId = String(req.user.id);
+    const senderId = req.user._id;
 
     const recipientId =
       String(conversation.customerId) === senderId
