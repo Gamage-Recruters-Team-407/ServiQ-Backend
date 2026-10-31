@@ -1,12 +1,12 @@
 node_modules/
 .env
-
 .env.*
-
-
 !.env.example
 coverage/
 *.log
 config.bat
+<<<<<<< HEAD
 .next/
 .tmp/
+
+
