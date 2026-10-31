@@ -22,7 +22,12 @@ const auditLogging = require("./middlewares/auditLogging");
 // Ratings & Reviews Routes
 const reviewRoutes = require("./routes/reviewRoutes");
 
+const adminUserManagementRoutes = require("./routes/adminUserManagement.routes");
+
+
 const app = express();
+//console.log("routes typeof:", typeof adminUserManagementRoutes);
+//app.use("/api/admin", adminUserManagementRoutes);
 
 // Global Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -64,6 +69,9 @@ app.use("/api/provider/bookings", providerBookingRoutes);
 
 // Audit Log Routes
 app.use("/api/admin/audit-logs", require("./routes/auditLogRoutes"));
+
+// Admin User Management Routes (Dev 20)
+app.use("/api/admin", adminUserManagementRoutes);
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
