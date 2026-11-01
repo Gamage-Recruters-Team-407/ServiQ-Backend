@@ -6,7 +6,12 @@
   "scripts": {
     "start": "node init && node src/server.js",
     "dev": "node init && nodemon src/server.js",
+<<<<<<< HEAD
     "test": "node --test"
+=======
+    "test": "node --test",
+    "seed:catalogue": "node src/seeds/catalogue.seed.js"
+>>>>>>> 93a5838c3b2a87d1c0413f09d4c4534b06945990
   },
   "repository": {
     "type": "git",
