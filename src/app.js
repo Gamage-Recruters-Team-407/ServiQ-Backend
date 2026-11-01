@@ -27,6 +27,9 @@ const adminUserManagementRoutes = require("./routes/adminUserManagement.routes")
 const { createDisputeRoutes, createAdminDisputeRoutes } = require("./routes/disputeRoutes");
 const { authenticate, authorizeRoles } = require("./middlewares/auth");
 
+const routes = require("./routes");
+const { notFound, errorHandler } = require("./middlewares/error");
+
 const app = express();
 
 // Global Middleware
@@ -50,6 +53,10 @@ app.get("/api/health", (req, res) => {
     message: "serviQ backend is running"
   });
 });
+
+app.use("/api", routes);   
+app.use(notFound);
+app.use(errorHandler);  
 
 // Service Discovery Routes (Developer 06)
 app.use("/api/discovery", discoveryRoutes);
