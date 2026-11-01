@@ -1,5 +1,5 @@
 const express = require("express");
-const { authenticate, authorize } = require("../middlewares/auth");
+const { authenticate, authorizeRoles } = require("../middlewares/auth"); // authorize වෙනුවට authorizeRoles දැම්මා
 const validate = require("../middlewares/validate");
 const { USER_ROLES } = require("../constants/enums");
 const v = require("../validations/serviceCompletion.validation");
@@ -14,13 +14,13 @@ router.use(authenticate);
 // GET    /api/service-completions/booking/:bookingId   record for a booking (declared before /:id)
 // GET    /api/service-completions/:id
 // PATCH  /api/service-completions/:id              provider: status / notes / evidence, customer: confirm_completion
-router.post("/", authorize(USER_ROLES.PROVIDER), validate({ body: v.createBody }), c.create);
+router.post("/", authorizeRoles(USER_ROLES.PROVIDER), validate({ body: v.createBody }), c.create); // මෙතනත් වෙනස් කළා
 router.get("/", validate({ query: v.listQuery }), c.list);
 router.get("/booking/:bookingId", validate({ params: v.bookingParam }), c.getByBooking);
 router.get("/:id", validate({ params: v.idParam }), c.getOne);
 router.patch(
   "/:id",
-  authorize(USER_ROLES.PROVIDER, USER_ROLES.CUSTOMER),
+  authorizeRoles(USER_ROLES.PROVIDER, USER_ROLES.CUSTOMER), // මෙතනත් වෙනස් කළා
   validate({ params: v.idParam, body: v.updateBody }),
   c.update
 );
