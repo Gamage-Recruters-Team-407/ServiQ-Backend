@@ -1,4 +1,4 @@
-
+﻿
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -22,6 +22,13 @@ const conversationRoutes = require("./routes/conversationRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const uploadRoutes = require("./routes/uploadRoutes");
 
+
+// Ratings & Reviews Routes
+const reviewRoutes = require("./routes/reviewRoutes");
+
+// Dispute Management Routes (Developer 17)
+const { createDisputeRoutes, createAdminDisputeRoutes } = require("./routes/disputeRoutes");
+const { authenticate, authorizeRoles } = require("./middlewares/auth");
 
 const app = express();
 
@@ -75,9 +82,14 @@ app.use("/api/uploads", uploadRoutes);
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 
+// Ratings & Reviews Routes 
+app.use("/api/reviews", reviewRoutes);
 
+// Dispute Management Routes (Developer 17)
+app.use("/api/disputes", createDisputeRoutes({ authenticate, authorizeRole: authorizeRoles }));
+app.use("/api/admin/disputes", createAdminDisputeRoutes({ authenticate, authorizeRole: authorizeRoles }));
 
-// Root route serves the interactive API Portal
+// Root Route (Interactive API Portal)
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
