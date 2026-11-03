@@ -1,4 +1,3 @@
-
 {
   "name": "serviq-backend",
   "version": "1.0.0",
@@ -30,6 +29,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.11.3",
     "morgan": "^1.12.1",
+    "nodemailer": "^10.1.6",
     "zod": "^4.6.7"
   },
   "devDependencies": {

@@ -3,6 +3,7 @@ const Customer = require("../models/Customer");
 const Provider = require("../models/Provider");
 const { USER_ROLES, USER_STATUSES, PROVIDER_TYPES } = require("../constants/enums");
 const { generateToken } = require("../utils/jwt");
+const { sendPasswordResetEmail } = require("../utils/email");
 
 class AuthService {
   /**
@@ -194,10 +195,20 @@ class AuthService {
       throw error;
     }
 
-    // In production, an OTP is generated and sent via SMS / Email gateway
+    // Generate random secure 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiryTime = new Date(Date.now() + 15 * 60 * 1000); // 15 mins validity
+
+    user.reset_password_otp = otpCode;
+    user.reset_password_otp_expires = expiryTime;
+    await user.save();
+
+    // Send email via Nodemailer
+    await sendPasswordResetEmail(user.email, user.full_name || user.first_name, otpCode);
+
     return {
       success: true,
-      message: "A 6-digit verification code has been dispatched."
+      message: "A 6-digit verification code has been dispatched to your email."
     };
   }
 
@@ -222,6 +233,22 @@ class AuthService {
       throw error;
     }
 
+    // Validate OTP against stored code & expiration
+    const isOtpValid = user.reset_password_otp && user.reset_password_otp === otp.trim();
+    const isOtpExpired = user.reset_password_otp_expires && new Date() > new Date(user.reset_password_otp_expires);
+
+    if (!isOtpValid) {
+      const error = new Error("The verification code you entered is invalid.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (isOtpExpired) {
+      const error = new Error("The verification code has expired. Please request a new one.");
+      error.statusCode = 400;
+      throw error;
+    }
+
     if (!newPassword || newPassword.length < 8) {
       const error = new Error("New password must be at least 8 characters.");
       error.statusCode = 400;
@@ -229,6 +256,8 @@ class AuthService {
     }
 
     user.password = newPassword;
+    user.reset_password_otp = null;
+    user.reset_password_otp_expires = null;
     await user.save();
 
     return {
