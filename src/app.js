@@ -82,14 +82,9 @@ app.use("/api/uploads", uploadRoutes);
 // Admin Routes
 app.use("/api/admin", adminRoutes);
 
-// Ratings & Reviews Routes 
-app.use("/api/reviews", reviewRoutes);
 
-// Dispute Management Routes (Developer 17)
-app.use("/api/disputes", createDisputeRoutes({ authenticate, authorizeRole: authorizeRoles }));
-app.use("/api/admin/disputes", createAdminDisputeRoutes({ authenticate, authorizeRole: authorizeRoles }));
 
-// Root Route (Interactive API Portal)
+// Root route serves the interactive API Portal
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
