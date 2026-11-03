@@ -55,9 +55,6 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api", routes);   
-app.use(notFound);
-app.use(errorHandler);  
-
 // Service Discovery Routes (Developer 06)
 app.use("/api/discovery", discoveryRoutes);
 
@@ -97,5 +94,9 @@ app.get("/", (req, res) => {
 
 // Provider Profiles Routes (Developer 04)
 app.use("/api/providers", require("./routes/providerRoutes"));
+
+// 404 and Global Error Handler (must be after all routes)
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
