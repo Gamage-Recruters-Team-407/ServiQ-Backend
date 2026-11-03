@@ -56,6 +56,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    reset_password_otp: {
+      type: String,
+      default: null
+    },
+    reset_password_otp_expires: {
+      type: Date,
+      default: null
+    },
     last_login_at: {
       type: Date,
       default: null
@@ -91,4 +99,3 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 module.exports = mongoose.model("User", userSchema);
-
