@@ -6,7 +6,7 @@ const requireAuth = (req, res, next) => {
   }
   req.user = {
     role: req.header("x-test-role"),
-    customerId: req.header("x-test-customer-id")
+    id: req.header("x-test-user-id")
   };
   next();
 };

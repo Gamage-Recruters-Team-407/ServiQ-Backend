@@ -1,6 +1,13 @@
-const { Payment } = require("../models");
+const { Payment, Customer } = require("../models");
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Read-only lookup. TODO: swap with Dev 02's customer lookup once it exists.
+async function findCustomerIdByUserId(userId) {
+  if (!userId) return null;
+  const customer = await Customer.findOne({ user_id: userId }).select("_id").lean();
+  return customer ? customer._id : null;
+}
 
 function buildFilter(q, base = {}) {
   const filter = { ...base };
@@ -43,12 +50,19 @@ async function listPayments(q, base = {}) {
   };
 }
 
+// Only safe fields are populated (no address / location / bio).
 async function getPaymentById(id) {
   return Payment.findById(id)
-    .populate("booking_id")
-    .populate("customer_id")
-    .populate("provider_id")
+    .populate({
+      path: "booking_id",
+      select: "booking_reference booking_status total_amount currency requested_at"
+    })
+    .populate({
+      path: "customer_id",
+      select:
+        "profile_details.first_name profile_details.last_name profile_details.phone_number account_status"
+    })
     .lean();
 }
 
-module.exports = { listPayments, getPaymentById };
+module.exports = { listPayments, getPaymentById, findCustomerIdByUserId };

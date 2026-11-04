@@ -7,10 +7,16 @@ exports.getMyPayments = async (req, res) => {
   if (!parsed.success) {
     return res.status(400).json({ success: false, errors: parsed.error.issues });
   }
-  // TODO: confirm with Dev 01/02 how the customer id is set on req.user
+
+  // req.user.id = logged-in User id (set by Dev 01's auth). Find the Customer from it.
+  const customerId = await paymentService.findCustomerIdByUserId(req.user.id);
+  if (!customerId) {
+    return res.status(404).json({ success: false, message: "Customer profile not found" });
+  }
+
   const result = await paymentService.listPayments(
     { ...parsed.data, customerId: undefined },
-    { customer_id: req.user.customerId }
+    { customer_id: customerId }
   );
   res.json({ success: true, data: result.items, pagination: result.pagination });
 };
