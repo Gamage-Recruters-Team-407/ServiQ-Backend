@@ -50,7 +50,7 @@ async function listPayments(q, base = {}) {
   };
 }
 
-// Only safe fields are populated (no address / location / bio).
+// Only safe fields are populated (no address / location / bio / tax id / documents).
 async function getPaymentById(id) {
   return Payment.findById(id)
     .populate({
@@ -61,6 +61,11 @@ async function getPaymentById(id) {
       path: "customer_id",
       select:
         "profile_details.first_name profile_details.last_name profile_details.phone_number account_status"
+    })
+    .populate({
+      path: "provider_id",
+      select:
+        "provider_type business_information.business_name business_information.contact_phone account_status"
     })
     .lean();
 }
