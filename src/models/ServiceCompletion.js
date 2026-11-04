@@ -57,7 +57,17 @@ const serviceCompletionSchema = new mongoose.Schema(
         type: String,
         trim: true
       }
-    ]
+    ],
+    status_history: [
+      {
+        _id: false,
+        status: { type: String, enum: Object.values(SERVICE_COMPLETION_STATUSES), required: true },
+        changed_by: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+        changed_by_role: { type: String, trim: true, default: null },
+    note: { type: String, trim: true, default: null },
+    changed_at: { type: Date, default: Date.now }
+  }
+]
   },
   {
     timestamps: { createdAt: "created_at", updatedAt: "updated_at" }
@@ -65,3 +75,5 @@ const serviceCompletionSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model("ServiceCompletion", serviceCompletionSchema);
+
+

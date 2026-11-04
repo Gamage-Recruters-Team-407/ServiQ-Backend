@@ -1,4 +1,3 @@
-﻿
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
@@ -26,9 +25,14 @@ const uploadRoutes = require("./routes/uploadRoutes");
 // Ratings & Reviews Routes
 const reviewRoutes = require("./routes/reviewRoutes");
 
+const adminUserManagementRoutes = require("./routes/adminUserManagement.routes");
+
 // Dispute Management Routes (Developer 17)
 const { createDisputeRoutes, createAdminDisputeRoutes } = require("./routes/disputeRoutes");
 const { authenticate, authorizeRoles } = require("./middlewares/auth");
+
+const routes = require("./routes");
+const { notFound, errorHandler } = require("./middlewares/error");
 
 const app = express();
 
@@ -54,6 +58,7 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+app.use("/api", routes);   
 // Service Discovery Routes (Developer 06)
 app.use("/api/discovery", discoveryRoutes);
 
@@ -78,6 +83,8 @@ app.use("/api/conversations", conversationRoutes);
 app.use("/api/conversations", messageRoutes);
 app.use("/api/uploads", uploadRoutes);
 
+// Admin User Management Routes (Dev 20)
+app.use("/api/admin", adminUserManagementRoutes);
 
 // Admin Routes
 app.use("/api/admin", adminRoutes);
@@ -114,5 +121,9 @@ app.use((err, req, res, next) => {
 
 // Provider Profiles Routes (Developer 04)
 app.use("/api/providers", require("./routes/providerRoutes"));
+
+// 404 and Global Error Handler (must be after all routes)
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
