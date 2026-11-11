@@ -1,4 +1,0 @@
-PORT=5000
-NODE_ENV=development
-MONGO_URI=mongodb+srv://serviq_app:serviQ26@serviq-cluster.mouromh.mongodb.net/serviq?authSource=admin
-FRONTEND_URL=http://localhost:3000
