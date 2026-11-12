@@ -47,3 +47,4 @@ const scheduleSchema = new mongoose.Schema(
 scheduleSchema.index({ booking_id: 1, schedule_status: 1 });
 
 module.exports = mongoose.model("Schedule", scheduleSchema);
+/*proceed*/
