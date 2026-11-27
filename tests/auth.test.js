@@ -484,13 +484,13 @@ describe("ServiQ Auth HTTP Endpoints & RBAC", () => {
       assert.ok(loginRes.body.token);
   });
 
-  it("detects placeholder vs configured Gmail SMTP credentials safely", async () => {
+  it("detects missing vs configured Gmail SMTP credentials safely", async () => {
     const prevUser = process.env.SMTP_USER;
     const prevPass = process.env.SMTP_PASS;
 
     try {
-      process.env.SMTP_USER = "your-gmail@gmail.com";
-      process.env.SMTP_PASS = "your-16-char-app-password";
+      process.env.SMTP_USER = "";
+      process.env.SMTP_PASS = "";
       assert.equal(isEmailConfigured(), false);
 
       const fallbackRes = await sendPasswordResetOtpEmail({

@@ -1,17 +1,10 @@
 const nodemailer = require("nodemailer");
 const { AppError } = require("../utils/authUtils");
 
-const PLACEHOLDER_VALUES = new Set([
-  "",
-  "your-gmail@gmail.com",
-  "your-email@gmail.com",
-  "your-16-char-app-password"
-]);
-
 function isEmailConfigured() {
   const user = (process.env.SMTP_USER || "").trim();
   const pass = (process.env.SMTP_PASS || "").trim();
-  return !PLACEHOLDER_VALUES.has(user) && !PLACEHOLDER_VALUES.has(pass);
+  return Boolean(user && pass);
 }
 
 function createTransporter() {
