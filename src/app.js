@@ -1,8 +1,10 @@
-
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+
+const authRoutes = require("./routes/authRoutes");
+const { notFoundHandler, errorHandler } = require("./middlewares/errorMiddleware");
 
 const app = express();
 
@@ -19,5 +21,10 @@ app.get("/api/health", (req, res) => {
     message: "serviQ backend is running"
   });
 });
+
+app.use("/api/auth", authRoutes);
+
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 module.exports = app;
