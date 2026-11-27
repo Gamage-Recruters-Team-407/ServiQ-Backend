@@ -12,6 +12,7 @@ process.env.JWT_EXPIRES_IN = "1d";
 const { USER_ROLES, USER_STATUSES, PROVIDER_TYPES } = require("../src/constants/enums");
 const { createAuthService } = require("../src/services/authService");
 const { createPasswordResetStore } = require("../src/services/passwordResetStore");
+const { isEmailConfigured, sendPasswordResetOtpEmail } = require("../src/integrations/emailService");
 const { createAuthController } = require("../src/controllers/authController");
 const { createAuthRouter } = require("../src/routes/authRoutes");
 const {
@@ -117,11 +118,13 @@ function createInMemoryModels() {
 describe("ServiQ Auth Validation & Service", () => {
   let models;
   let issuedOtps;
+  let sentEmails;
   let service;
 
   beforeEach(() => {
     models = createInMemoryModels();
     issuedOtps = [];
+    sentEmails = [];
     const resetStore = createPasswordResetStore({ memoryOnly: true });
     service = createAuthService({
       UserModel: models.UserModel,
@@ -132,6 +135,10 @@ describe("ServiQ Auth Validation & Service", () => {
         const otp = "482910";
         issuedOtps.push(otp);
         return otp;
+      },
+      sendResetOtpEmail: async (payload) => {
+        sentEmails.push(payload);
+        return { delivered: true };
       }
     });
   });
@@ -235,6 +242,12 @@ describe("ServiQ Auth Validation & Service", () => {
 
     await service.requestPasswordReset({ identifier: "saman@example.com" });
     assert.equal(issuedOtps.length, 1);
+    assert.equal(sentEmails.length, 1);
+    assert.deepEqual(sentEmails[0], {
+      to: "saman@example.com",
+      firstName: "Saman",
+      otp: "482910"
+    });
 
     await assert.rejects(
       () => service.verifyResetOtp({ identifier: "saman@example.com", otp: "000000" }),
@@ -349,7 +362,8 @@ describe("ServiQ Auth HTTP Endpoints & RBAC", () => {
       CustomerModel: models.CustomerModel,
       ProviderModel: models.ProviderModel,
       resetStore,
-      generateOtp: () => "654321"
+      generateOtp: () => "654321",
+      sendResetOtpEmail: async () => ({ delivered: true })
     });
 
     const controller = createAuthController(service);
@@ -466,7 +480,34 @@ describe("ServiQ Auth HTTP Endpoints & RBAC", () => {
         password: "NewSecurePassword789"
       }
     });
-    assert.equal(loginRes.status, 200);
-    assert.ok(loginRes.body.token);
+      assert.equal(loginRes.status, 200);
+      assert.ok(loginRes.body.token);
+  });
+
+  it("detects missing vs configured Gmail SMTP credentials safely", async () => {
+    const prevUser = process.env.SMTP_USER;
+    const prevPass = process.env.SMTP_PASS;
+
+    try {
+      process.env.SMTP_USER = "";
+      process.env.SMTP_PASS = "";
+      assert.equal(isEmailConfigured(), false);
+
+      const fallbackRes = await sendPasswordResetOtpEmail({
+        to: "user@example.com",
+        firstName: "Ayesh",
+        otp: "123456"
+      });
+      assert.deepEqual(fallbackRes, { delivered: false, mode: "dev-console" });
+
+      process.env.SMTP_USER = "serviq.app@gmail.com";
+      process.env.SMTP_PASS = "abcd efgh ijkl mnop";
+      assert.equal(isEmailConfigured(), true);
+    } finally {
+      if (prevUser === undefined) delete process.env.SMTP_USER;
+      else process.env.SMTP_USER = prevUser;
+      if (prevPass === undefined) delete process.env.SMTP_PASS;
+      else process.env.SMTP_PASS = prevPass;
+    }
   });
 });
