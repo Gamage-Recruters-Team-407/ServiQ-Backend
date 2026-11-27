@@ -10,6 +10,7 @@ const {
 } = require("../constants/enums");
 const { AppError, signAccessToken } = require("../utils/authUtils");
 const { defaultResetStore } = require("./passwordResetStore");
+const { sendPasswordResetOtpEmail } = require("../integrations/emailService");
 
 const BCRYPT_ROUNDS = 12;
 
@@ -57,7 +58,8 @@ function createAuthService({
   hashPassword = (pw) => bcrypt.hash(pw, BCRYPT_ROUNDS),
   comparePassword = (pw, hash) => bcrypt.compare(pw, hash),
   generateToken = signAccessToken,
-  generateOtp = () => String(crypto.randomInt(100000, 1000000))
+  generateOtp = () => String(crypto.randomInt(100000, 1000000)),
+  sendResetOtpEmail = sendPasswordResetOtpEmail
 } = {}) {
   async function ensureRoleProfile(user, providerType) {
     if (user.user_role === USER_ROLES.CUSTOMER) {
@@ -217,12 +219,11 @@ function createAuthService({
       const otp = generateOtp();
       await resetStore.saveOtp(user._id, otp);
 
-      if (
-        process.env.NODE_ENV !== "production" &&
-        process.env.NODE_ENV !== "test"
-      ) {
-        console.info(`[ServiQ Auth] Password reset OTP for ${user.email}: ${otp}`);
-      }
+      await sendResetOtpEmail({
+        to: user.email,
+        firstName: user.first_name,
+        otp
+      });
     }
 
     return {

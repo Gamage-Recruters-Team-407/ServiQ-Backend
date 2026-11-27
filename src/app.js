@@ -5,6 +5,7 @@ const morgan = require("morgan");
 
 const authRoutes = require("./routes/authRoutes");
 const customerRoutes = require("./routes/customerRoutes");
+const availabilityRoutes = require("./routes/availabilityRoutes");
 const { notFoundHandler, errorHandler } = require("./middlewares/errorMiddleware");
 
 const app = express();
@@ -25,6 +26,7 @@ app.get("/api/health", (req, res) => {
 
 app.use("/api/auth", authRoutes);
 app.use("/api/customers/profile", customerRoutes);
+app.use("/api/availability", availabilityRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
